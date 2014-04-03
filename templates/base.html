@@ -204,7 +204,7 @@
       <br>
       <small>
         {% if 'repopath' in config %}
-        Running revision <a href="{{ config['repopath'] }}{{ config['hash'] }}">{{ config['hash'] }}</a>
+        Running revision <a href="{{ config['repopath'] }}commit/{{ config['hash'] }}">{{ config['hash'] }}</a>
         released on {{ config['revdate'] }}.
         {% endif %}
         <br>
