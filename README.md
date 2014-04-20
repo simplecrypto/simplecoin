@@ -90,8 +90,8 @@ This makes the following presumptions
 	apt-get upgrade
 	apt-get install python-software-properties
 	apt-add-repository ppa:chris-lea/node.js
-	add-repository ppa:bitcoin/bitcoin -y
-	get update
+	apt-add-repository ppa:bitcoin/bitcoin -y
+	apt-get update
 	apt-get install git-core nodejs python2.7-dev python-setuptools python2.7 build-essential redis-server postgresql-contrib-9.1 postgresql-9.1 postgresql-server-dev-9.1 rabbitmq-server git python-pip
 	apt-get build-dep bitcoin -y
 	easy_install pip
@@ -128,7 +128,7 @@ And follow the rest of this guide!
 You can Copy and paste this bit, this will get simplecoin, install more requirements and
 dependancys, compile what needs doing etc, this CAN on slow systems take some time
 
-	clone https://github.com/simplecrypto/simplecoin.git
+	git clone https://github.com/simplecrypto/simplecoin.git
 	cd simplecoin
 	pip install -r requirements.txt
 	pip install -r dev-requirements.txt
