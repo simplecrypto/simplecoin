@@ -1,4 +1,4 @@
-Simple Doge
+Simple Coin
 ===========
 
 This repo is a generic version of http://simpledoge.com and http://simplevert.com.
