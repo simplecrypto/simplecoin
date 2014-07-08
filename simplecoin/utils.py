@@ -10,7 +10,6 @@ from cryptokit.base58 import get_bcaddress_version
 
 from bitcoinrpc import CoinRPCException
 from . import db, coinserv, cache, root
-from .utils import db, coinserv, cache, root
 from .models import (DonationPercent, OneMinuteReject, OneMinuteShare,
                      FiveMinuteShare, FiveMinuteReject, Payout, BonusPayout,
                      Block, OneHourShare, OneHourReject, Share, Status,
@@ -47,9 +46,10 @@ def users_blocks(address, merged=None):
 
 
 @cache.memoize(timeout=86400)
+@timeit
 def all_time_shares(address):
     shares = db.session.query(OneHourShare).filter_by(user=address)
-    return sum([shares.value for shares in shares])
+    return sum([share.value for share in shares])
 
 
 @cache.memoize(timeout=60)
@@ -105,7 +105,9 @@ def last_blockheight(merged_type=None):
         return 0
     return last.height
 
+
 @cache.cached(timeout=3600, key_prefix='block_stats')
+@timeit
 def get_block_stats(average_diff):
     blocks = all_blocks()
     total_shares = 0
@@ -215,6 +217,7 @@ def get_alerts():
 
 
 @cache.memoize(timeout=60)
+@timeit
 def last_10_shares(user):
     twelve_ago = datetime.datetime.utcnow() - datetime.timedelta(minutes=12)
     two_ago = datetime.datetime.utcnow() - datetime.timedelta(minutes=2)
@@ -230,7 +233,6 @@ def total_paid(address, merged_type=None):
     total_p = (TransactionSummary.query.filter_by(user=address).
                join(TransactionSummary.transaction, aliased=True).
                filter_by(merged_type=merged_type))
-    current_app.logger.info((merged_type, len(total_p.all())))
     return int(sum([tx.amount for tx in total_p]))
 
 
@@ -263,6 +265,7 @@ def get_pool_acc_rej():
     return reject_total, accept_total
 
 
+@timeit
 def collect_acct_items(address, limit, offset=0, merged_type=None):
     payouts = (Payout.query.filter_by(user=address, merged_type=merged_type).
                order_by(Payout.id.desc()).limit(limit).offset(offset))
@@ -272,6 +275,7 @@ def collect_acct_items(address, limit, offset=0, merged_type=None):
                   key=lambda i: i.created_at, reverse=True)
 
 
+@timeit
 def collect_user_stats(address):
     """ Accumulates all aggregate user data for serving via API or rendering
     into main user stats page """
@@ -295,44 +299,47 @@ def collect_user_stats(address):
     now = datetime.datetime.utcnow().replace(second=0, microsecond=0)
     twelve_ago = now - datetime.timedelta(minutes=12)
     two_ago = now - datetime.timedelta(minutes=2)
-    for m in itertools.chain(get_typ(FiveMinuteShare, address),
-                             get_typ(OneMinuteShare, address)):
-        workers.setdefault(m.worker, def_worker.copy())
-        workers[m.worker]['accepted'] += m.value
-        # if in the right 10 minute window add to list
-        if m.time >= twelve_ago and m.time < two_ago:
-            workers[m.worker]['last_10_shares'] += m.value
+    with Benchmark("Iterating share count for users"):
+        for m in itertools.chain(get_typ(FiveMinuteShare, address),
+                                 get_typ(OneMinuteShare, address)):
+            workers.setdefault(m.worker, def_worker.copy())
+            workers[m.worker]['accepted'] += m.value
+            # if in the right 10 minute window add to list
+            if m.time >= twelve_ago and m.time < two_ago:
+                workers[m.worker]['last_10_shares'] += m.value
 
     # accumulate reject amount
-    for m in itertools.chain(get_typ(FiveMinuteReject, address),
-                             get_typ(OneMinuteReject, address)):
-        workers.setdefault(m.worker, def_worker.copy())
-        workers[m.worker]['rejected'] += m.value
+    with Benchmark("Iterating reject share count for users"):
+        for m in itertools.chain(get_typ(FiveMinuteReject, address),
+                                 get_typ(OneMinuteReject, address)):
+            workers.setdefault(m.worker, def_worker.copy())
+            workers[m.worker]['rejected'] += m.value
 
     # grab and collect all the ppagent status information for easy use
-    for st in Status.query.filter_by(user=address):
-        workers.setdefault(st.worker, def_worker.copy())
-        workers[st.worker]['status'] = st.parsed_status
-        workers[st.worker]['status_stale'] = st.stale
-        workers[st.worker]['status_time'] = st.time
-        workers[st.worker]['total_hashrate'] = sum([gpu['MHS av'] for gpu in workers[st.worker]['status']['gpus']])
-        try:
-            workers[st.worker]['wu'] = sum(
-                [(gpu['Difficulty Accepted'] / gpu['Device Elapsed']) * 60
-                 for gpu in workers[st.worker]['status']['gpus']])
-        except KeyError:
-            workers[st.worker]['wu'] = 0
+    with Benchmark("Grabbing status information for workers"):
+        for st in Status.query.filter_by(user=address):
+            workers.setdefault(st.worker, def_worker.copy())
+            workers[st.worker]['status'] = st.parsed_status
+            workers[st.worker]['status_stale'] = st.stale
+            workers[st.worker]['status_time'] = st.time
+            workers[st.worker]['total_hashrate'] = sum([gpu['MHS av'] for gpu in workers[st.worker]['status']['gpus']])
+            try:
+                workers[st.worker]['wu'] = sum(
+                    [(gpu['Difficulty Accepted'] / gpu['Device Elapsed']) * 60
+                     for gpu in workers[st.worker]['status']['gpus']])
+            except KeyError:
+                workers[st.worker]['wu'] = 0
 
-        try:
-            workers[st.worker]['wue'] = workers[st.worker]['wu'] / (workers[st.worker]['total_hashrate']*1000)
-        except ZeroDivisionError:
-            workers[st.worker]['wue'] = 0.0
+            try:
+                workers[st.worker]['wue'] = workers[st.worker]['wu'] / (workers[st.worker]['total_hashrate']*1000)
+            except ZeroDivisionError:
+                workers[st.worker]['wue'] = 0.0
 
-        ver = workers[st.worker]['status'].get('v', '0.2.0').split('.')
-        try:
-            workers[st.worker]['status_version'] = [int(part) for part in ver]
-        except ValueError:
-            workers[st.worker]['status_version'] = "Unsupp"
+            ver = workers[st.worker]['status'].get('v', '0.2.0').split('.')
+            try:
+                workers[st.worker]['status_version'] = [int(part) for part in ver]
+            except ValueError:
+                workers[st.worker]['status_version'] = "Unsupp"
 
     # pull online status from cached pull direct from powerpool servers
     for name, host in cache.get('addr_online_' + address) or []:
