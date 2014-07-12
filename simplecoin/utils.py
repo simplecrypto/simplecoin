@@ -107,7 +107,7 @@ def last_blockheight(merged_type=None):
     return last.height
 
 
-#@cache.memoize(timeout=3600)
+@cache.memoize(timeout=3600)
 def get_block_stats(timedelta=None):
     if timedelta is None:
         timedelta = datetime.timedelta(days=30)
@@ -116,19 +116,23 @@ def get_block_stats(timedelta=None):
     total_shares = 0
     total_difficulty = 0
     total_orphans = 0
-    one_month_ago = datetime.datetime.utcnow() - timedelta
+    total_blocks = 0
+
+    time_ago = datetime.datetime.utcnow() - timedelta
     for shares_to_solve, bits, orphan in (
         db.engine.execution_options(stream_results=True).
         execute(select([Block.shares_to_solve, Block.bits, Block.orphan]).
                 where(Block.merged_type == None).
-                where(Block.found_at >= one_month_ago).
+                where(Block.found_at >= time_ago).
                 order_by(Block.height.desc()))):
         total_shares += shares_to_solve
         total_difficulty += bits_to_difficulty(bits)
         if orphan is True:
             total_orphans += 1
 
-    total_blocks = len(blocks)
+    for block in blocks:
+        if block.found_at >= time_ago:
+            total_blocks += 1
 
     if total_orphans > 0 and total_blocks > 0:
         orphan_perc = (float(total_orphans) / total_blocks) * 100
