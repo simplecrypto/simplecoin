@@ -52,12 +52,12 @@ in development to watch for file changes and reload the server.
     grunt watch
 
 This should successfully start the development server if all is well. If not,
-taking a look at the uwsgi log can help.
+taking a look at the webserver log or gunicorn log can help.
 
     tail -f websever.log
+    tail -f gunicorn.log
     
-It's also Usually I have this running in a
-possible that gunicorn is failing to start completely, in which case you can run it
+It's also possible that gunicorn is failing to start completely, in which case you can run it
 by hand to see what's going wrong.
     
     gunicorn simplecoin.wsgi_entry:app -p gunicorn.pid -b 0.0.0.0:9400 --access-logfile gunicorn.log
@@ -66,7 +66,18 @@ If you're running powerpool as well you'll need to start a celery worker to proc
 the tasks (found shares/blocks/stats etc) that it generates. You can run the worker
 like this:
     
-    python simplecoin/celery_entry.py -l INFO --beat
+    python simplecoin/celery_entry.py -l INFO
+    
+And finally to perform various period tasks, run the scheduler program. This computes various cached values,
+runs payouts for solved blocks, and many vital tasks.
+
+    python simplecoin/scheduler.py
+    
+Production
+===============
+
+Currently there are no instructions on how to setup SimpleCoin and PowerPool for production, but 
+I do have plans to make one in the near future.
     
 Donate
 ===============
