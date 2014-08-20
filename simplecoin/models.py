@@ -155,6 +155,7 @@ class Transaction(base):
     confirmed = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     merged_type = db.Column(db.String)
+    fee = db.Column(db.BigInteger)
 
     @classmethod
     def create(cls, txid, merged_type=None):
@@ -311,7 +312,6 @@ class Transfer(AbstractConcreteBase, base):
     amount = db.Column(db.BigInteger, CheckConstraint('amount>0', 'min_payout_amount'))
     # allows us to lock a transfer while doing a payout. prevents double
     # spending
-    locked = db.Column(db.Boolean, default=False, server_default="FALSE")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     merged_type = db.Column(db.String, default=None)
 

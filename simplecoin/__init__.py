@@ -84,6 +84,7 @@ def create_app(config='/config.yml', celery=False):
         hdlr.setFormatter(formatter)
         app.logger.addHandler(hdlr)
         app.logger.setLevel(logging.INFO)
+        app.logger.info("Starting up SimpleCoin!\n{}".format("=" * 100))
 
         # try and fetch the git version information
         try:
@@ -175,6 +176,7 @@ def create_app(config='/config.yml', celery=False):
     # =========================================================================
     from . import views, models, api, rpc_views
     app.register_blueprint(views.main)
+    app.register_blueprint(rpc_views.rpc_views, url_prefix='/rpc')
     app.register_blueprint(api.api, url_prefix='/api')
 
     return app
