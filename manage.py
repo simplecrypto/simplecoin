@@ -256,14 +256,24 @@ def general_cleanup_cmd():
 
 def make_context():
     """ Setup a coinserver connection fot the shell context """
-    app = _request_ctx_stack.top.app
     conn = AuthServiceProxy(
         "http://{0}:{1}@{2}:{3}/"
         .format(app.config['coinserv']['username'],
                 app.config['coinserv']['password'],
                 app.config['coinserv']['address'],
                 app.config['coinserv']['port']))
-    return dict(app=app, conn=conn)
+    import simplecoin
+    print(
+"""The following variables are predefined/imported:
+db: the sqlalchemy database instance
+t: pre-imported simplecoin.tasks
+m: pre-imported simplecoin.models
+conn: The primary rpc connection\n""")
+    return dict(app=_request_ctx_stack.top.app,
+                conn=conn,
+                m=simplecoin.models,
+                t=simplecoin.scheduler,
+                db=db)
 manager.add_command("shell", Shell(make_context=make_context))
 manager.add_command('db', MigrateCommand)
 
