@@ -3,6 +3,7 @@ a specific address. It is useful for merged mining where getauxwork can't
 specify a destination address and fills up local wallets. """
 from bitcoinrpc import AuthServiceProxy, CoinRPCException
 from decimal import Decimal
+import sys
 import logging
 import argparse
 import re
@@ -22,7 +23,7 @@ parser.add_argument('recipient')
 args = parser.parse_args()
 
 root = logging.getLogger()
-ch = logging.StreamHandler()
+ch = logging.StreamHandler(sys.stdout)
 ch.setLevel(logging.DEBUG)
 ch.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(message)s'))
 root.addHandler(ch)
