@@ -17,7 +17,7 @@ root = os.path.abspath(os.path.dirname(__file__) + '/../')
 from bitcoinrpc.authproxy import AuthServiceProxy
 from simplecoin.scheduler import (cleanup, run_payouts, server_status,
                                   update_online_workers, update_pplns_est,
-                                  cache_user_donation, general_cleanup)
+                                  cache_user_donation, general_cleanup, update_block_state)
 from simplecoin.models import (Transaction, Threshold, DonationPercent,
                                BonusPayout, OneMinuteType, FiveMinuteType,
                                Block, MergeAddress, Payout, TransactionSummary)
@@ -246,6 +246,11 @@ def payout_cmd(simulate):
     """ Runs the payout task manually. Simulate mode is default. """
     simulate = simulate != "0"
     run_payouts(simulate=simulate)
+
+
+@manager.command
+def update_block_state_cmd():
+    update_block_state()
 
 
 @manager.command
