@@ -33,7 +33,8 @@ merge:
       name: Monocle
       # BTC, LTC, etc..
       currency_name: MON
-      # required number of transaction confirmations before marking confirmed
+      # required number of transaction confirmations before marking payout
+      # transactions confirmed
       trans_confirmations: 6
       # the expected time for the network to find a block in seconds. used for
       # computing network hashrate
