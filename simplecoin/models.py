@@ -451,6 +451,10 @@ class SliceMixin(object):
         db.session.add(slc)
         return slc
 
+    @property
+    def timestamp(self):
+        return calendar.timegm(self.time.utctimetuple())
+
     @classmethod
     def add_value(cls, user, value, time, worker):
         dt = cls.floor_time(time)

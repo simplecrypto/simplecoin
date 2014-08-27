@@ -254,6 +254,22 @@ def update_block_state_cmd():
 
 
 @manager.command
+def dump_device():
+    import json
+    import simplecoin.models as m
+    for base, stat in [('Hashrate', "hashrate"), ('Temperature', "temperature")]:
+        for span, tm in enumerate(['OneMinute', 'FiveMinute', 'OneHour']):
+            for slc in getattr(m, tm + base).query:
+                print json.dumps(dict(user=slc.user,
+                                      worker=slc.worker,
+                                      device=slc.device,
+                                      time=slc.timestamp,
+                                      value=slc.value,
+                                      span=span,
+                                      _stat=stat))
+
+
+@manager.command
 def general_cleanup_cmd():
     """ Runs the payout task manually. Simulate mode is default. """
     general_cleanup()
