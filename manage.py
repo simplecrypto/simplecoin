@@ -1,5 +1,6 @@
 import os
 import logging
+import json
 import datetime
 import time
 import sqlalchemy
@@ -246,6 +247,40 @@ def payout_cmd(simulate):
     """ Runs the payout task manually. Simulate mode is default. """
     simulate = simulate != "0"
     run_payouts(simulate=simulate)
+
+
+@manager.command
+def dump_shares():
+    import simplecoin.models as m
+    for base, st in [('Share', "acc"), ('Reject', "stale")]:
+        for span, tm in enumerate(['OneMinute', 'FiveMinute', 'OneHour']):
+            for slc in getattr(m, tm + base).query.filter_by(user="D5dMhCUWVGAyWLVcHyhvbMUyz18KGYvu7U"):
+                print json.dumps(dict(user=slc.user,
+                                      worker=slc.worker,
+                                      time=slc.timestamp,
+                                      value=slc.value,
+                                      span=span,
+                                      share_type=st))
+
+
+@manager.command
+def dump_device():
+    import simplecoin.models as m
+    for base, stat in [('Hashrate', "hashrate"), ('Temperature', "temperature")]:
+        for span, tm in enumerate(['OneMinute', 'FiveMinute', 'OneHour']):
+            model = getattr(m, tm + base)
+            for slc in model.query.filter(model.user.in_(
+                [u'DPh2dfaoa9tRgqY6J7PaaFTDiWdJt1fqiG',
+                 u'DQxjBwxPLVocp2AHXcdrBxtyvTinEVpoo3',
+                 u'DPWYzK9cCY2k6hi5weZf9Vu8z3cUdwU2M3',
+                 u'DKYRL99GiTgBrmyfJ8vLQyYrNm8Yzo9kgX'])):
+                print json.dumps(dict(user=slc.user,
+                                      worker=slc.worker,
+                                      device=slc.device,
+                                      time=slc.timestamp,
+                                      value=slc.value,
+                                      span=span,
+                                      _stat=stat))
 
 
 @manager.command
