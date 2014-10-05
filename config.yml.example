@@ -54,6 +54,9 @@ merge:
       transaction_link_prefix: http://cryptexplorer.com/tx/
       # just like above, but with a block to merged mining
       block_link_prefix: http://cryptexplorer.com/block/
+      # how many confirmations do we wait before marking blocks mature
+      # and allowing payout over RPC
+      block_mature_confirms: 120
     
 
 # connection information for the coinserver RPC
