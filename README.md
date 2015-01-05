@@ -1,3 +1,9 @@
+Deprecated!
+===========
+
+This repo is no longer actively maintained/developed/supported. The evolution of
+this project is [SimpleCoin Multi](http://github.com/simplecrypto/simplecoin_multi)
+
 Simple Coin
 ===========
 
