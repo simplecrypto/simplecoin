@@ -10,7 +10,7 @@ Mako==0.9.1
 MarkupSafe==0.19
 PyYAML==3.10
 SQLAlchemy==0.9.1
-Werkzeug==0.9.4
+Werkzeug==0.15.3
 alembic==0.6.4
 amqp==1.4.4
 anyjson==0.3.3
