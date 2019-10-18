@@ -1,6 +1,6 @@
 git+https://github.com/icook/python-bitcoinrpc.git
 git+https://github.com/icook/cryptokit
-Flask==0.10.1
+Flask==1.0
 Flask-Cache==0.12
 Flask-Migrate==1.2.0
 Flask-SQLAlchemy==1.0
