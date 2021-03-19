@@ -5,7 +5,7 @@ Flask-Cache==0.12
 Flask-Migrate==1.2.0
 Flask-SQLAlchemy==1.0
 Flask-Script==0.6.6
-Jinja2==2.7.2
+Jinja2==2.11.3
 Mako==0.9.1
 MarkupSafe==0.19
 PyYAML==3.10
