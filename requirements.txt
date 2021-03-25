@@ -8,7 +8,7 @@ Flask-Script==0.6.6
 Jinja2==2.7.2
 Mako==0.9.1
 MarkupSafe==0.19
-PyYAML==3.10
+PyYAML==5.4
 SQLAlchemy==0.9.1
 Werkzeug==0.9.4
 alembic==0.6.4
